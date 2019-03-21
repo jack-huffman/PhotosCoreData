@@ -79,7 +79,57 @@ class NewContactViewController: UIViewController, UINavigationControllerDelegate
     
     @objc
     func contactImageTapped(tapGesture: UITapGestureRecognizer) {
+        let alert = UIAlertController(title: "Select source", message: message, preferredStyle: UIAlertControllerStyle.alert)
+        alert.addAction(UIAlertAction(title: "Camera", style: UIAlertActionStyle.default, handler: #selector(NewContactViewController.takePicture())))
+        alert.addAction(UIAlertAction(title: "Photo Library", style: UIAlertActionStyle.default, handler: #selector(NewContactViewController.selectPhoto())))
+        alert.addAction(UIAlertAction(title: "Cancel", style: UIAlertActionStyle.Cancel, handler: nil))
         
+        self.present(alert, animated: true, completion: nil)    }
+    
+    func takePicture() {
+        guard PhotoViewController.isSourceTypeAvailable(.camera) else {
+            alertNotifyUser(message: "Camera could not be opened for this device.")
+            return
+        }
+        
+        imagePicker.sourceType = .camera
+        imagePicker.allowsEditing = true
+        imagePicker.delegate = self
+        
+        present(imagePicker, animated: true)
+    }
+    
+    func selectPhoto() {
+        guard PhotoViewController.isSourceTypeAvailable(.photoLibrary) else {
+            alertNotifyUser(message: "Photo Library could not be opened.")
+            return
+        }
+        
+        imagePicker.sourceType = .photoLibrary
+        imagePicker.delegate = self
+        
+        present(imagePicker, animated: true)
+    }
+    
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        
+        defer {
+            picker.dismiss(animated: true)
+        }
+        
+        if let image = info[UIImagePickerController.InfoKey.originalImage] as? UIImage {
+            contactImage.image = image
+            return
+        }
+        print("Image couldn't be opened")
+    }
+    
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        
+        defer {
+            picker.dismiss(animated: true)
+        }
+        print("Cancelled")
     }
     
     func alertNotifyUser(message: String) {
